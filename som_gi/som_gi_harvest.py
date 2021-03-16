@@ -63,7 +63,7 @@ def get_fields_from_query(query):
 
 df = pandas.read_csv('input/som_gi_input_ammended.csv', header=0)
 
-with open('output/som_gi_report.csv', mode='w') as out:
+with open('output/dimensions_report_smci.csv', mode='w') as out:
     out = csv.writer(out, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     out.writerow(["display_name", "search_strategy", "researcher_id", "faculty/fellow", "searched_name", "searched_institution", "title", "author_list", "pmid", "dimensions_id", "doi", "doi_url", "publisher", "journal", "volume", "issue", "pages", "mesh", "pub_year", "provenance", "pub_harvested_date"])
 
@@ -106,10 +106,10 @@ with open('output/som_gi_report.csv', mode='w') as out:
                 authors, journal_title = get_fields_from_query(query)
                 out.writerow([r["Display Name"], 'Name string & GRID', '', r["Faculty/Fellow"], c[0].strip(), c[1].strip(), pub['title'], '; '.join(authors), pub.get('pmid'), pub['id'], pub.get('doi'), "https://doi.org/{}".format(pub.get('doi')), pub.get('publisher'), journal_title, pub.get('volume'), pub.get('issue'), pub.get('pages'), pub.get('mesh_terms'), pub.get('year'), 'dimensions', datetime.now().strftime("%d/%m/%Y %H:%M:%S")])
 
-no_dupes_per_researcher = pandas.read_csv("output/som_gi_report.csv")
+no_dupes_per_researcher = pandas.read_csv("output/dimensions_report_smci.csv")
 no_dupes_per_researcher.drop_duplicates(subset=["display_name","dimensions_id"], keep='first', inplace=True)
-no_dupes_per_researcher.to_csv('output/som_gi_report_no_dupes_per_researcher.csv', index=False)
+no_dupes_per_researcher.to_csv('output/dimensions_report_smci.csv', index=False)
 
-no_dupes = pandas.read_csv("output/som_gi_report.csv")
+no_dupes = pandas.read_csv("output/dimensions_report_smci.csv")
 no_dupes.drop_duplicates(subset="dimensions_id", keep='first', inplace=True)
-no_dupes.to_csv('output/som_gi_report_no_dupes.csv', index=False)
+no_dupes.to_csv('output/dimensions_report_no_dupes_smci.csv', index=False)
