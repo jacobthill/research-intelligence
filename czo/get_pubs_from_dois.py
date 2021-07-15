@@ -8,7 +8,7 @@ import config
 dimcli.login(config.username, config.password, config.endpoint)
 dsl = dimcli.Dsl()
 
-input = pandas.read_csv('doi_input.csv', header=0)
+input = pandas.read_csv('non-relevant-dois.csv', header=0)
 print("Raw shape: {}".format(input.shape))
 no_dupes = input.drop_duplicates(subset="doi", keep='first', inplace=False)
 print("Without dupes: {}".format(no_dupes))
@@ -28,7 +28,7 @@ chunk_size = 250
 start = 0
 end = 250
 chunks = math.floor(len(list(input.doi)) / chunk_size)
-with open('output/output_from_dois.csv', mode='w') as out:
+with open('output/non-relevant.csv', mode='w') as out:
     out = csv.writer(out, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     # update
     out.writerow(["title", "authors", "id", "doi", "publisher", "journal", "volume", "issue", "pages", "pub_year", "concepts", "provenance", "pub_harvested_date"])
