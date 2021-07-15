@@ -1,4 +1,4 @@
-import dimcli, json, requests, sys
+import dimcli, itertools, json, requests, sys
 import pandas as pd
 from datetime import datetime
 from dimcli.utils import *
@@ -9,10 +9,13 @@ import config
 
 input = pd.read_csv('award_number_input.csv', header=0)
 
-awards = {}
+awards = []
+awards_dict = {}
 
 for index, row in input.iterrows():
-    awards[row['AwardNumber']] = row['StartDate']
+    awards_dict[row['AwardNumber']] = row['StartDate']
+
+site_names = ['Boulder Creek', 'Calhoun', 'Santa Catalina Mountains', 'Jemez River Basin', 'Christina River Basin', 'Eel River', 'Intensively Managed Landscapes', 'Luquillo', 'Reynolds Creek', 'Susquehanna Shale Hills', 'Southern Sierra']
 
 full_text_query = """search publications in full_data for "\\"{}\\"" return publications [title + researchers + id + doi + publisher + journal + volume + issue + pages + year + concepts] limit 1000"""
 
@@ -33,21 +36,25 @@ def get_authors(query):
 dimcli.login(config.username, config.password, config.endpoint)
 dsl = dimcli.Dsl()
 
-dimensions = pd.DataFrame(columns=["title", "author_list", "dimensions_id", "doi", "doi_url", "publisher", "journal", "volume", "issue", "pages", "pub_year", "concepts", "provenance", "award_number", "award_date", "pub_harvested_date"])
+dimensions = pd.DataFrame(columns=["title", "author_list", "dimensions_id", "doi", "doi_url", "publisher", "journal", "volume", "issue", "pages", "pub_year", "concepts", "provenance", "query_term", "pub_harvested_date"])
 
-for count, (k,v) in enumerate(awards.items(), start=1):
+# for k,v in awards_dict.items():
+#     awards.append(str(k))
+
+for count, i in enumerate(list(itertools.chain(awards, site_names)),start=1):
 
     # Get publications by search term
-    query = dsl.query(full_text_query.format(str(k)))
+    query = dsl.query(full_text_query.format(i))
     for pub in query['publications']:
         try:
             researcher_ids = get_authors(query)
-            new_row = [pub['title'], '; '.join(researcher_ids), pub['id'], pub.get('doi'), "https://doi.org/{}".format(pub.get('doi')), pub.get('publisher'), pub.get('journal'), pub.get('volume'), pub.get('issue'), pub.get('pages'), pub.get('year'), pub.get('concepts'), 'dimensions', k, v, datetime.now().strftime("%d/%m/%Y %H:%M:%S")]
+            new_row = [pub['title'], '; '.join(researcher_ids), pub['id'], pub.get('doi'), "https://doi.org/{}".format(pub.get('doi')), pub.get('publisher'), pub.get('journal'), pub.get('volume'), pub.get('issue'), pub.get('pages'), pub.get('year'), pub.get('concepts'), 'dimensions', i, datetime.now().strftime("%d/%m/%Y %H:%M:%S")]
             new_row_series = pd.Series(new_row, index = dimensions.columns)
             dimensions = dimensions.append(new_row_series, ignore_index=True)
         except:
             pass
 
-    print('Finished {} of {}.'.format(count, len(awards)))
+    print('Finished term {} of {}: {}.'.format(count, len(list(itertools.chain(awards, site_names))), i))
+    print('\n')
 
 dimensions.to_csv('output/output_from_award_numbers.csv', index=False)
